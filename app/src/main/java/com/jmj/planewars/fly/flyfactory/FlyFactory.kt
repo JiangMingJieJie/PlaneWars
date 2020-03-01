@@ -8,9 +8,7 @@ import com.jmj.planewars.fly.flyobject.bullet.GmdBullet
 import com.jmj.planewars.fly.flyobject.plane.GcdPlane
 import com.jmj.planewars.fly.flyobject.plane.GmdPlane
 import com.jmj.planewars.fly.flyobject.plane.Plane
-import com.jmj.planewars.fly.view.FlyView
-import com.jmj.planewars.fly.view.PlaneGcdView
-import com.jmj.planewars.fly.view.PlaneGmdView
+import com.jmj.planewars.fly.view.*
 import com.jmj.planewars.tools.dp2px
 import java.util.*
 
@@ -27,7 +25,7 @@ object FlyFactory {
                     getFlyView(context, flyType),
                     flyType,
                     dp2px(50),
-                    dp2px(100),
+                    dp2px(75),
                     1,
                     100
                 )
@@ -37,7 +35,7 @@ object FlyFactory {
                     getFlyView(context, flyType),
                     flyType,
                     dp2px(50),
-                    dp2px(100),
+                    dp2px(75),
                     random.nextInt(10) + 1,
                     100
                 )
@@ -47,7 +45,7 @@ object FlyFactory {
                     getFlyView(context, flyType),
                     flyType,
                     dp2px(50),
-                    dp2px(100),
+                    dp2px(75),
                     5,
                     100
                 )
@@ -107,10 +105,10 @@ object FlyFactory {
                 flyView.isReverse = true
             }
             FlyType.BULLET_GCD -> {
-                flyView = PlaneGcdView(context)
+                flyView = BulletGcdView(context)
             }
             FlyType.BULLET_GMD -> {
-                flyView = PlaneGmdView(context)
+                flyView = BulletGmdView(context)
                 flyView.isReverse = true
             }
         }

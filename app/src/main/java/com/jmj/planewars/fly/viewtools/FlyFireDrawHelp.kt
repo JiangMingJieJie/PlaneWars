@@ -1,28 +1,40 @@
 package com.jmj.planewars.fly.viewtools
 
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.animation.ValueAnimator
+import android.graphics.*
+import android.view.View
 import java.util.ArrayList
 
-class FlyFireDrawHelp(private var rect: Rect, color: Int) {
+class FlyFireDrawHelp(private var rect: Rect, private var view: View) {
     private val particles = ArrayList<Particle>()
-    private val particlesCount = 5
     private var borderWidth = 0
     private var paint = Paint()
+    private var fireAnim: ValueAnimator? = null
 
     init {
-        paint.color = color
+        paint.color = Color.RED
     }
 
     /**
      * 绘制粒子
      */
     private fun draw(canvas: Canvas) {
+        if (fireAnim == null) {
+            fireAnim = ValueAnimator.ofInt(0, 1)
+                .apply {
+                    addUpdateListener {
+                        view.invalidate()
+                    }
+                    repeatCount = ValueAnimator.INFINITE
+                    start()
+                }
+        }
+
         particles.forEach {
+            var h = rect.bottom - rect.top
+            var yProgress = it.y - rect.top
             //粒子透明度
-            paint.alpha = 255 - (it.y * (255F / (rect.bottom - rect.top))).toInt()
+            paint.alpha = (255 - yProgress * (255F / h)).toInt()
             canvas.drawRect(
                 it.x,
                 it.y,
@@ -43,16 +55,17 @@ class FlyFireDrawHelp(private var rect: Rect, color: Int) {
         }
 
         if (particles.size == 0) {
-            addParticle(particlesCount)
+            addParticle((rect.right - rect.left) / borderWidth / 2 * 2)
         }
         //改变位置
         particles.forEach {
             if (it.xv > 0) {
-                it.xv += 0.01f
+                it.xv += 0.005f
             } else {
-                it.xv += -0.01f
+                it.xv += -0.005f
             }
-            it.yv = it.yv + 0.1f
+            it.yv = it.yv + 0.2F
+
             it.x = it.x + it.xv
             it.y = it.y + it.yv
         }
@@ -86,6 +99,10 @@ class FlyFireDrawHelp(private var rect: Rect, color: Int) {
             particle.xv = 0.5f - 1 * Math.random().toFloat()
             particles.add(particle)
         }
+    }
+
+    fun stopDrawParticle() {
+        fireAnim?.cancel()
     }
 
     data class Particle(var x: Float, var y: Float, var xv: Float = 1F, var yv: Float = 1F)

@@ -15,6 +15,7 @@ import com.jmj.planewars.fly.flyobject.plane.Plane
 import com.jmj.planewars.fly.view.MapView
 import java.lang.Math.abs
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.collections.ArrayList
 
 
@@ -26,15 +27,15 @@ class FlyController(private var context: Activity, private var mapView: MapView)
     /**
      * 敌军飞机集合
      */
-    private var gmdPlanes: ArrayList<Plane> = ArrayList()
+    private var gmdPlanes: CopyOnWriteArrayList<Plane> = CopyOnWriteArrayList()
     /**
      * 我军子弹集合
      */
-    private var gcdBullets: ArrayList<Bullet> = ArrayList()
+    private var gcdBullets: CopyOnWriteArrayList<Bullet> = CopyOnWriteArrayList()
     /**
      * 敌军子弹集合
      */
-    private var gmdBullets: ArrayList<Bullet> = ArrayList()
+    private var gmdBullets: CopyOnWriteArrayList<Bullet> = CopyOnWriteArrayList()
 
     /**
      * 地图的宽高
@@ -59,7 +60,7 @@ class FlyController(private var context: Activity, private var mapView: MapView)
                             shot(gcdPlane!!)
                         }
 
-                        SystemClock.sleep(500)
+                        SystemClock.sleep(1000)
                     }
                 }.start()
 
@@ -108,7 +109,6 @@ class FlyController(private var context: Activity, private var mapView: MapView)
     }
 
 
-
     /**
      * 发射子弹
      */
@@ -125,10 +125,10 @@ class FlyController(private var context: Activity, private var mapView: MapView)
         var start = fly.cy
         var end = if (fly.flyType == FlyType.BULLET_GCD || fly.flyType == FlyType.PLANE_GCD) {
             //我的子弹 自下而上
-            -fly.h * 2F
+            -fly.h * 6F
         } else {
             //敌机子弹 自上而下
-            h + fly.h * 2F
+            h + fly.h * 6F
         }
         ValueAnimator.ofFloat(start, end)
             .apply {
@@ -162,13 +162,11 @@ class FlyController(private var context: Activity, private var mapView: MapView)
      * fly位置检测 如果已经超出屏幕则删除
      */
     private fun checkFlyPosition(fly: Fly): Boolean {
-
         //如果view已经不再屏幕内了 删除它
-        if (fly.x + fly.w <= 0 || fly.x >= w || fly.y + h <= 0 || fly.y >= h) {
+        if (fly.x + fly.w <= 0 || fly.x >= w || fly.y + fly.h <= 0 || fly.y >= h) {
             removeFly(fly)
             return false
         }
-        return true
         return true
     }
 
