@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.ViewGroup
 import com.jmj.planewars.fly.flyobject.Fly
-import com.jmj.planewars.tools.myLog
 
 /**
  * 飞行物的容器
@@ -56,7 +55,7 @@ class MapView : ViewGroup {
      * 添加飞行物
      */
     fun addFly(fly: Fly) {
-        addView(fly.flyView)
+        addView(fly.view)
 
     }
 
@@ -64,7 +63,7 @@ class MapView : ViewGroup {
      * 删除飞行物
      */
     fun removeFly(fly: Fly) {
-        removeView(fly.flyView)
+        removeView(fly.view)
     }
 
 

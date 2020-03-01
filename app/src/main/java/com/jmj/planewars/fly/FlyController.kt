@@ -12,38 +12,48 @@ import com.jmj.planewars.fly.flyfactory.FlyFactory
 import com.jmj.planewars.fly.flyobject.Fly
 import com.jmj.planewars.fly.flyobject.bullet.Bullet
 import com.jmj.planewars.fly.flyobject.plane.Plane
+import com.jmj.planewars.fly.view.FlyBoomView
 import com.jmj.planewars.fly.view.MapView
+import com.jmj.planewars.tools.myLog
 import java.lang.Math.abs
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.collections.ArrayList
 
 
-class FlyController(private var context: Activity, private var mapView: MapView) {
+class FlyController(private var activity: Activity, private var mapView: MapView) {
     /**
      * 我军飞机
      */
-    private lateinit var gcdPlane: Plane
+    private var gcdPlanes: CopyOnWriteArrayList<Fly> = CopyOnWriteArrayList()
     /**
      * 敌军飞机集合
      */
-    private var gmdPlanes: CopyOnWriteArrayList<Plane> = CopyOnWriteArrayList()
+    private var gmdPlanes: CopyOnWriteArrayList<Fly> = CopyOnWriteArrayList()
     /**
      * 我军子弹集合
      */
-    private var gcdBullets: CopyOnWriteArrayList<Bullet> = CopyOnWriteArrayList()
+    private var gcdBullets: CopyOnWriteArrayList<Fly> = CopyOnWriteArrayList()
     /**
      * 敌军子弹集合
      */
-    private var gmdBullets: CopyOnWriteArrayList<Bullet> = CopyOnWriteArrayList()
-
+    private var gmdBullets: CopyOnWriteArrayList<Fly> = CopyOnWriteArrayList()
+    /**
+     * 屏幕内的敌军飞机数量上限
+     */
+    private var gmdPlaneCount = 10
     /**
      * 地图的宽高
      */
     private var w = 0
     private var h = 0
 
+    private var isGameOver = false
+    private var isQuitGame = false
+
     private var random = Random()
+
+    var onGameOverListener: OnGameOverListener? = null
 
 
     init {
@@ -51,54 +61,53 @@ class FlyController(private var context: Activity, private var mapView: MapView)
             override fun onFinish(w: Int, h: Int) {
                 this@FlyController.w = w
                 this@FlyController.h = h
-                createGcdPlane()
-                createGmdPlane()
-
-                Thread {
-                    while (true) {
-                        context.runOnUiThread {
-                            shot(gcdPlane!!)
-                        }
-
-                        SystemClock.sleep(1000)
-                    }
-                }.start()
-
-                Thread {
-                    while (true) {
-                        gmdPlanes.forEach {
-                            context.runOnUiThread {
-                                shot(it)
-                            }
-                        }
-                        SystemClock.sleep(2000)
-
-                    }
-                }.start()
+                addGcdPlane()
+                addGmdPlane()
+                startGmdPlaneShotThread()
             }
         }
     }
 
-    /**
-     * 创建敌机
-     */
-    private fun createGmdPlane() {
-        val gmdPlaneCount = random.nextInt(10) + 5
-        for (i in 0 until gmdPlaneCount) {
-            val plane = FlyFactory.getPlane(context, FlyType.PLANE_GMD)
-            //随机布放位置
-            plane.x = w * random.nextFloat()
-            addFly(plane)
-            moveFly(plane)
-        }
+    private fun startGcdPlaneShotThread() {
+        Thread {
+            while (!isGameOver) {
+                activity.runOnUiThread {
+                    if (gcdPlanes.size != 0) {
+                        shot(gcdPlanes[0] as Plane)
+                    }
+                }
+
+                SystemClock.sleep(200)
+            }
+        }.start()
+    }
+
+
+    private fun startGmdPlaneShotThread() {
+        Thread {
+            while (!isQuitGame) {
+                gmdPlanes.forEach {
+                    activity.runOnUiThread {
+                        shot(it as Plane)
+                    }
+                }
+                SystemClock.sleep(4000)
+
+            }
+        }.start()
+    }
+
+    fun reStart() {
+        isGameOver = false
+        addGcdPlane()
     }
 
     /**
      * 添加我的飞机
      */
-    private fun createGcdPlane() {
+    fun addGcdPlane() {
         //创建我的飞机
-        gcdPlane = FlyFactory.getPlane(context, FlyType.PLANE_GCD)
+        var gcdPlane = FlyFactory.getPlane(activity, FlyType.PLANE_GCD)
         //指定我的飞机的位置
         gcdPlane.x = w / 2F - gcdPlane.w / 2
         gcdPlane.y = h - gcdPlane.h.toFloat()
@@ -106,20 +115,83 @@ class FlyController(private var context: Activity, private var mapView: MapView)
         addFly(gcdPlane)
         //开启拖拽
         openFlyDrag(gcdPlane)
+
+        startGcdPlaneShotThread()
+    }
+
+
+    /**
+     * 创建敌机Fly
+     */
+    private fun createGmdPlane() {
+        val plane = FlyFactory.getPlane(activity, FlyType.PLANE_GMD)
+        //随机布放位置
+        plane.x = w * random.nextFloat()
+        plane.y = -plane.w * 2F
+        addFly(plane)
+        moveFly(plane)
+    }
+
+    /**
+     * 创建爆炸效果的fly
+     */
+    private fun createBoom(fly: Fly) {
+        var flyType = when (fly.flyType) {
+            FlyType.PLANE_GCD -> {
+                FlyType.BOOM_GCD_PLANE
+            }
+            FlyType.BULLET_GCD -> {
+                FlyType.BOOM_GCD_BULLET
+
+            }
+            FlyType.PLANE_GMD -> {
+                FlyType.BOOM_GMD_PLANE
+            }
+            FlyType.BULLET_GMD -> {
+                FlyType.BOOM_GMD_BULLET
+            }
+            else -> {
+                FlyType.BOOM
+            }
+        }
+
+        val boom = FlyFactory.getBoom(activity, flyType)
+        boom.x = (fly.cx - boom.w / 2)
+        boom.y = (fly.cy - boom.h / 2)
+        mapView.addFly(boom)
+
+        val flyBoomView = boom.view as FlyBoomView
+        //爆炸动画结束的时候将其从mapView中删除
+        flyBoomView.animatorListener = object : FlyBoomView.AnimatorListener {
+            override fun onAnimationEnd() {
+                removeFly(boom)
+            }
+        }
+    }
+
+
+    /**
+     * 添加敌机Fly
+     */
+    private fun addGmdPlane() {
+        for (i in 0 until gmdPlaneCount) {
+            createGmdPlane()
+        }
     }
 
 
     /**
      * 发射子弹
      */
-    fun shot(plane: Plane) {
+    private fun shot(plane: Plane) {
         val bullet = plane.shotBullet()!!
         addFly(bullet)
         moveFly(bullet)
     }
 
+
     /**
-     * 移动fly
+     * 移动Fly
      */
     private fun moveFly(fly: Fly) {
         var start = fly.cy
@@ -144,12 +216,19 @@ class FlyController(private var context: Activity, private var mapView: MapView)
 
                     //超出屏幕检测
                     if (checkFlyPosition(fly)) {
-                        if (fly.flyType == FlyType.BULLET_GCD) {
-                            //碰撞检测
-                            checkFlyCollision(fly)
+                        when (fly.flyType) {
+                            FlyType.BULLET_GCD -> {
+                                gcdBulletIsCollision(fly, gmdPlanes)
+                            }
+                            FlyType.BULLET_GMD -> {
+                                gcdBulletIsCollision(fly, gcdPlanes)
+                            }
+                            FlyType.PLANE_GMD -> {
+                                gcdBulletIsCollision(fly, gcdPlanes)
+                            }
                         }
-                    }
 
+                    }
                 }
                 duration = (abs(start - end)).toLong() * fly.speed
                 interpolator = LinearInterpolator()
@@ -159,11 +238,18 @@ class FlyController(private var context: Activity, private var mapView: MapView)
     }
 
     /**
-     * fly位置检测 如果已经超出屏幕则删除
+     * Fly位置检测 如果已经超出屏幕则删除
      */
     private fun checkFlyPosition(fly: Fly): Boolean {
         //如果view已经不再屏幕内了 删除它
-        if (fly.x + fly.w <= 0 || fly.x >= w || fly.y + fly.h <= 0 || fly.y >= h) {
+        if (fly.x + fly.w <= -fly.w * 4 ||
+
+            fly.x >= w + fly.w * 4 ||
+
+            fly.y + fly.h <= -fly.h * 4 ||
+
+            fly.y >= h + fly.h * 4
+        ) {
             removeFly(fly)
             return false
         }
@@ -171,30 +257,52 @@ class FlyController(private var context: Activity, private var mapView: MapView)
     }
 
     /**
-     * 飞行物碰撞检测
+     * 我的子弹是否碰撞到敌机
      */
-    private fun checkFlyCollision(fly: Fly) {
-        var temp = ArrayList<Plane>()
-        temp.addAll(gmdPlanes)
-        for (plane in temp) {
+    private fun gcdBulletIsCollision(hitFly: Fly, beHitFlys: CopyOnWriteArrayList<Fly>) {
+        for (beHitFly in beHitFlys) {
             //碰撞之后跳出循环
             if (isCollision(
-                    fly.x,
-                    fly.y,
-                    fly.w.toFloat(),
-                    fly.h.toFloat(),
-                    plane.x,
-                    plane.y,
-                    plane.w.toFloat(),
-                    plane.h.toFloat()
+                    hitFly.x,
+                    hitFly.y,
+                    hitFly.w.toFloat(),
+                    hitFly.h.toFloat(),
+                    beHitFly.x,
+                    beHitFly.y,
+                    beHitFly.w.toFloat(),
+                    beHitFly.h.toFloat()
                 )
             ) {
-                removeFly(fly)
-                removeFly(plane)
+                sellingHP(hitFly, beHitFly)
                 break
             }
         }
     }
+
+    /**
+     * 碰撞扣除HP
+     */
+    private fun sellingHP(fly1: Fly, fly2: Fly) {
+        fly1.HP -= fly2.power
+        fly2.HP -= fly1.power
+        isDid(fly1)
+        isDid(fly2)
+    }
+
+    /**
+     * 飞行物是否死亡
+     */
+    private fun isDid(fly: Fly) {
+        if (fly.HP <= 0) {
+            createBoom(fly)
+            removeFly(fly)
+            if (fly.flyType == FlyType.PLANE_GCD) {
+                isGameOver = true
+                onGameOverListener?.onGameOver()
+            }
+        }
+    }
+
 
     /**
      * 碰撞检测
@@ -217,11 +325,11 @@ class FlyController(private var context: Activity, private var mapView: MapView)
 
 
     /**
-     * 开启Fly的手势拖动
+     * 手势拖动我的飞机
      */
     @SuppressLint("ClickableViewAccessibility")
     private fun openFlyDrag(fly: Fly) {
-        fly.flyView.setOnTouchListener(object : View.OnTouchListener {
+        mapView.setOnTouchListener(object : View.OnTouchListener {
             var dx = 0
             var dy = 0
             var mx = 0
@@ -236,6 +344,8 @@ class FlyController(private var context: Activity, private var mapView: MapView)
                         mx = event.x.toInt()
                         my = event.y.toInt()
                         move()
+                        dx = mx
+                        dy = my
                     }
                     MotionEvent.ACTION_UP -> {
 
@@ -247,50 +357,76 @@ class FlyController(private var context: Activity, private var mapView: MapView)
             private fun move() {
                 fly.x += (mx - dx)
                 fly.y += (my - dy)
+
+                //拖动超出屏幕检测
+                if (fly.x < 0F) {
+                    fly.x = 0F
+                }
+                if (fly.y < 0F) {
+                    fly.y = 0F
+                }
+
+                if (fly.x + fly.w > w) {
+                    fly.x = w.toFloat() - fly.w
+                }
+                if (fly.y + fly.h > h) {
+                    fly.y = h.toFloat() - fly.h
+                }
             }
         })
     }
 
 
     /**
-     * 添加Fly
+     * 添加Fly到集合和mapView
      */
     private fun addFly(fly: Fly) {
         when (fly.flyType) {
             FlyType.BULLET_GCD -> {
-                gcdBullets.add(fly as Bullet)
+                gcdBullets.add(fly)
             }
             FlyType.BULLET_GMD -> {
-                gmdBullets.add(fly as Bullet)
+                gmdBullets.add(fly)
+            }
+            FlyType.PLANE_GCD -> {
+                gcdPlanes.add(fly)
             }
             FlyType.PLANE_GMD -> {
-                gmdPlanes.add(fly as Plane)
+                gmdPlanes.add(fly)
             }
+
         }
         mapView.addFly(fly)
     }
 
     /**
-     * 删除fly
+     * 从集合和mapView中删除fly
      */
     private fun removeFly(fly: Fly) {
         when (fly.flyType) {
             FlyType.BULLET_GCD -> {
-                val bullet = fly as Bullet
-                bullet.boom()
-                gcdBullets.remove(bullet)
+                gcdBullets.remove(fly)
             }
             FlyType.BULLET_GMD -> {
-                val bullet = fly as Bullet
-                bullet.boom()
-                gcdBullets.remove(bullet)
+                gcdBullets.remove(fly)
             }
             FlyType.PLANE_GMD -> {
+                createGmdPlane()
                 gmdPlanes.remove(fly)
+            }
+            FlyType.PLANE_GCD -> {
+                gcdPlanes.remove(fly)
             }
         }
         mapView.removeFly(fly)
+        fly.boom()
     }
 
+    fun quitGame() {
+        isQuitGame = true
+    }
 
+    interface OnGameOverListener {
+        fun onGameOver()
+    }
 }

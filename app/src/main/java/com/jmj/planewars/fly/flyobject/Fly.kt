@@ -1,15 +1,15 @@
 package com.jmj.planewars.fly.flyobject
 
 import android.content.Context
+import android.view.View
 import android.view.ViewGroup
 import com.jmj.planewars.fly.cons.FlyType
-import com.jmj.planewars.fly.view.FlyView
 
 abstract class Fly {
     /**
      * 飞行器展示的view
      */
-    var flyView: FlyView
+    var view: View
     /**
      * 这个飞行器是否已经死亡
      */
@@ -41,27 +41,32 @@ abstract class Fly {
      */
     var x = 0F
         set(value) {
-            flyView.x = value
-            cx = (flyView.x + w / 2)
+            view.x = value
+            cx = (view.x + w / 2)
             field = value
         }
     var y = 0F
         set(value) {
-            flyView.y = value
-            cy = (flyView.y + h / 2)
+            view.y = value
+            cy = (view.y + h / 2)
             field = value
         }
 
+    var power = 100
 
-    constructor(flyView: FlyView, flyType: FlyType, w: Int, h: Int, speed: Int) {
-        this.flyView = flyView
+    var HP = 100
+
+    constructor(view: View, flyType: FlyType, w: Int, h: Int, speed: Int, power: Int, HP: Int) {
+        this.view = view
         this.flyType = flyType
         this.speed = speed
         this.w = w
         this.h = h
-        this.context = flyView.context
+        this.power = power
+        this.HP = HP
+        this.context = view.context
         val layoutParams = ViewGroup.LayoutParams(w, h)
-        flyView.layoutParams = layoutParams
+        view.layoutParams = layoutParams
     }
 
     fun setFlyPosition(x: Int, y: Int) {
@@ -72,7 +77,6 @@ abstract class Fly {
      */
     fun boom() {
         isBoom = true
-        flyView.boom()
     }
 
 

@@ -5,7 +5,7 @@ import android.graphics.*
 import android.view.View
 import java.util.ArrayList
 
-class FlyFireDrawHelp(private var rect: Rect, private var view: View) {
+class FlyFire(private var rect: Rect, private var view: View) {
     private val particles = ArrayList<Particle>()
     private var borderWidth = 0
     private var paint = Paint()

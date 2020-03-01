@@ -4,6 +4,7 @@ import android.graphics.Rect
 import org.junit.Test
 
 import org.junit.Assert.*
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
@@ -14,6 +15,6 @@ import kotlin.random.Random
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        println(Random(10).nextInt(10))
+
     }
 }

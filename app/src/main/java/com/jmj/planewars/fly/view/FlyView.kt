@@ -5,7 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
-import com.jmj.planewars.fly.viewtools.FlyFireDrawHelp
+import com.jmj.planewars.fly.viewtools.FlyFire
 import com.jmj.planewars.tools.dp2px
 
 
@@ -14,7 +14,7 @@ abstract class FlyView : View {
     var h = 0F
     var cx = 0F
     var cy = 0F
-    private var flyFireDrawHelp: FlyFireDrawHelp? = null
+    private var flyFire: FlyFire? = null
 
     var isReverse = false
         set(value) {
@@ -61,7 +61,7 @@ abstract class FlyView : View {
             if (isReverse) {
                 canvas.rotate(180F, w / 2, h / 2)
             }
-            flyFireDrawHelp?.drawParticle(it)
+            flyFire?.drawParticle(it)
         }
     }
 
@@ -73,7 +73,6 @@ abstract class FlyView : View {
     private fun computeRect() {
         var horizontalDenominator = 5
         var verticalDenominator = 5
-
 
         //横向每份的长度
         horizontalMolecule = w / horizontalDenominator
@@ -87,13 +86,13 @@ abstract class FlyView : View {
             (horizontalMolecule * 3).toInt(),
             h.toInt()
         )
-        flyFireDrawHelp = FlyFireDrawHelp(rect, this)
+        flyFire = FlyFire(rect, this)
     }
 
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        flyFireDrawHelp?.stopDrawParticle()
+        flyFire?.stopDrawParticle()
     }
 
 }
