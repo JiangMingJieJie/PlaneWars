@@ -1,9 +1,7 @@
 package com.jmj.planewars.activity
 
-import android.app.Activity
 import android.content.DialogInterface
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 import android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -25,7 +23,7 @@ class MainActivity : AppCompatActivity() {
         fullScreen()
         flyController = FlyController(this, mapView)
 
-        flyController.onGameOverListener = object : FlyController.OnGameOverListener {
+        flyController.onGameOverListener = object : FlyController.OnGameProgressListener {
             override fun onGameOver() {
                 AlertDialog.Builder(this@MainActivity)
                     .setMessage("游戏结束!点击确定继续游戏,点击取消退出游戏")

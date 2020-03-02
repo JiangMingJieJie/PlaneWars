@@ -3,15 +3,10 @@ package com.jmj.planewars.fly.flyfactory
 import android.content.Context
 import android.graphics.Color
 import android.view.View
-import com.jmj.planewars.fly.cons.FlyColors
 import com.jmj.planewars.fly.cons.FlyType
 import com.jmj.planewars.fly.flyobject.Boom
-import com.jmj.planewars.fly.flyobject.bullet.Bullet
-import com.jmj.planewars.fly.flyobject.bullet.GcdBullet
-import com.jmj.planewars.fly.flyobject.bullet.GmdBullet
-import com.jmj.planewars.fly.flyobject.plane.GcdPlane
-import com.jmj.planewars.fly.flyobject.plane.GmdPlane
-import com.jmj.planewars.fly.flyobject.plane.Plane
+import com.jmj.planewars.fly.flyobject.Bullet
+import com.jmj.planewars.fly.flyobject.Plane
 import com.jmj.planewars.fly.view.*
 import com.jmj.planewars.tools.dp2px
 import java.util.*
@@ -19,68 +14,56 @@ import java.util.*
 object FlyFactory {
     private var random = Random()
     /**
-     * 我的飞机大小
+     * 我的飞机
      */
-    private var gcdPlaneLength = 40
-    /**
-     * 敌机大小
-     */
-    private var gmdPlaneLength = 30
-
-    private var bossLength = 100
-    /**
-     * 我的飞机子弹大小
-     */
-    private var gcdBulletLength = 20
-    /**
-     * 敌机子弹大小
-     */
-    private var gmdBulletLength = 20
-    /**
-     * 我的飞机HP
-     */
-    private var gcdPlaneHP = 100000
-    /**
-     * 我的飞机碰撞威力
-     */
-    private var gcdPlanePower = 100
-    /**
-     * 敌机HP
-     */
-    private var gmdPlaneHp = 100
-
-    private var bossHp = 3000
-    /**
-     * 敌机碰撞威力
-     */
-    private var gmdPlanePower = 100
-    private var bossPower = 1000
-    /**
-     * 我的子弹HP
-     */
-    private var gcdBulletHP = 0
-    /**
-     * 我的飞机子弹威力
-     */
-    private var gcdBulletPower = 100
-    /**
-     * 敌机子弹HP
-     */
-    private var gmdBulletHP = 0
-    /**
-     * 敌机子弹威力
-     */
-    private var gmdBulletPower = 100
-
+    private var gcdPlaneLength = 40  //飞机大小
+    private var gcdBulletLength = 20 //子弹大小
+    private var gcdPlaneHP = 10000  //飞机生命值
+    private var gcdPlanePower = 100  //飞机撞击威力
+    private var gcdBulletHP = 0      //子弹生命值
+    private var gcdBulletPower = 100  //子弹威力
 
     /**
-     * 获取飞机
+     * 敌机
      */
-    fun getPlane(context: Context, flyType: FlyType): Plane {
+    private var gmdPlaneLength = 30    //飞机大小
+    private var gmdBulletLength = 20   //子弹大小
+    private var gmdPlaneHp = 100       //飞机生命值
+    private var gmdPlanePower = 100    //飞机撞击威力
+    private var gmdBulletHP = 0        //子弹生命值
+    private var gmdBulletPower = 100   //子弹威力
+
+    /**
+     * BOSS
+     */
+    private var bossPlaneLength = 150    //飞机大小
+    private var bossBulletLength = 60   //子弹大小
+    private var bossPlaneHp = 6000       //飞机生命值
+    private var bossPlanePower = 100    //飞机撞击威力
+    private var bossBulletHP = 0        //子弹生命值
+    private var bossBulletPower = 100   //子弹威力
+
+
+    private var GMD_PLANE_WING = Color.parseColor("#42AFF5")
+    private var GMD_PLANE_BODY = Color.parseColor("#F06292")
+    private var GMD_BULLET = GMD_PLANE_BODY
+
+    private var GCD_PLANE_WING = Color.parseColor("#FFC107")
+    private var GCD_PLANE_BODY = Color.parseColor("#009688")
+    private var GCD_BULLET = GCD_PLANE_WING
+
+    private var BOSS_PLANE_WING = Color.parseColor("#FF5722")
+    private var BOSS_PLANE_BODY = Color.parseColor("#00BCD4")
+    private var BOSS_BULLET = BOSS_PLANE_WING
+
+    /**
+     * 获取飞机的Fly
+     */
+    fun getPlane(context: Context, flyType: FlyType): Plane? {
         return when (flyType) {
             FlyType.PLANE_GCD -> {
-                GcdPlane(
-                    getView(context, flyType),
+                Plane(
+                    getView(context, flyType)!!,
                     flyType,
                     dp2px(gcdPlaneLength),
                     dp2px(gcdPlaneLength),
@@ -90,8 +73,8 @@ object FlyFactory {
                 )
             }
             FlyType.PLANE_GMD -> {
-                GmdPlane(
-                    getView(context, flyType),
+                Plane(
+                    getView(context, flyType)!!,
                     flyType,
                     dp2px(gmdPlaneLength),
                     dp2px(gmdPlaneLength),
@@ -100,40 +83,30 @@ object FlyFactory {
                     gmdPlaneHp
                 )
             }
-            FlyType.BOSS -> {
-                GmdPlane(
-                    getView(context, flyType),
+            FlyType.PLANE_BOSS -> {
+                Plane(
+                    getView(context, flyType)!!,
                     flyType,
-                    dp2px(bossLength),
-                    dp2px(bossLength),
-                    20,
-                    bossPower,
-                    bossHp
+                    dp2px(bossPlaneLength),
+                    dp2px(bossPlaneLength),
+                    2,
+                    bossPlanePower,
+                    bossPlaneHp
                 )
             }
-            else -> {
-                GmdPlane(
-                    getView(context, flyType),
-                    flyType,
-                    dp2px(gmdPlaneLength),
-                    dp2px(gmdPlaneLength),
-                    random.nextInt(3) + 3,
-                    gmdPlanePower,
-                    gmdPlaneHp
-                )
-            }
+            else -> null
         }
     }
 
     /**
-     * 获取子弹
+     * 获取子弹的Fly
      */
-    fun getBullet(context: Context, flyType: FlyType): Bullet {
+    fun getBullet(context: Context, flyType: FlyType): Bullet? {
         return when (flyType) {
-            FlyType.BULLET_GCD -> {
-                GcdBullet(
-                    getView(context, flyType),
-                    flyType,
+            FlyType.PLANE_GCD -> {
+                Bullet(
+                    getView(context, FlyType.BULLET_GCD)!!,
+                    FlyType.BULLET_GCD,
                     dp2px(gcdBulletLength),
                     dp2px(gcdBulletLength),
                     1,
@@ -141,10 +114,10 @@ object FlyFactory {
                     gcdBulletHP
                 )
             }
-            FlyType.BULLET_GMD -> {
-                GmdBullet(
-                    getView(context, flyType),
-                    flyType,
+            FlyType.PLANE_GMD -> {
+                Bullet(
+                    getView(context, FlyType.BULLET_GMD)!!,
+                    FlyType.BULLET_GMD,
                     dp2px(gmdBulletLength),
                     dp2px(gmdBulletLength),
                     random.nextInt(3),
@@ -152,27 +125,19 @@ object FlyFactory {
                     gmdBulletHP
                 )
             }
-            FlyType.BULLET_BOSS -> {
-                GmdBullet(
-                    getView(context, flyType),
-                    flyType,
-                    dp2px(40),
-                    dp2px(40),
+            FlyType.PLANE_BOSS -> {
+                Bullet(
+                    getView(context, FlyType.BULLET_BOSS)!!,
+                    FlyType.BULLET_BOSS,
+                    dp2px(bossBulletLength),
+                    dp2px(bossBulletLength),
                     1,
-                    gmdBulletPower,
-                    gmdBulletHP
+                    bossBulletPower,
+                    bossBulletHP
                 )
             }
             else -> {
-                GmdBullet(
-                    getView(context, flyType),
-                    flyType,
-                    dp2px(gmdBulletLength),
-                    dp2px(gmdBulletLength),
-                    random.nextInt(3),
-                    gmdBulletPower,
-                    gmdBulletHP
-                )
+                null
             }
         }
     }
@@ -180,118 +145,127 @@ object FlyFactory {
     /**
      * 获取爆炸效果的Fly
      */
-    fun getBoom(context: Context, flyType: FlyType): Boom {
+    fun getBoom(context: Context, flyType: FlyType): Boom? {
         return when (flyType) {
-            FlyType.BOOM_GMD_PLANE -> {
+            FlyType.PLANE_GMD -> {
                 Boom(
-                    getBoomView(context, flyType),
-                    flyType,
+                    getBoomView(context, flyType)!!,
+                    FlyType.BOOM,
                     dp2px(gmdPlaneLength),
                     dp2px(gmdPlaneLength),
                     0
                 )
             }
-            FlyType.BOOM_GMD_BULLET -> {
+            FlyType.BULLET_GMD -> {
                 Boom(
-                    getBoomView(context, flyType),
-                    flyType,
+                    getBoomView(context, flyType)!!,
+                    FlyType.BOOM,
                     dp2px(gmdBulletLength),
                     dp2px(gmdBulletLength),
                     0
                 )
             }
 
-            FlyType.BOOM_GCD_PLANE -> {
+            FlyType.PLANE_GCD -> {
                 Boom(
-                    getBoomView(context, flyType),
-                    flyType,
+                    getBoomView(context, flyType)!!,
+                    FlyType.BOOM,
                     dp2px(gcdPlaneLength),
                     dp2px(gcdBulletLength),
                     0
                 )
             }
 
-            FlyType.BOOM_GCD_BULLET -> {
+
+            FlyType.BULLET_GCD -> {
                 Boom(
-                    getBoomView(context, flyType),
-                    flyType,
+                    getBoomView(context, flyType)!!,
+                    FlyType.BOOM,
                     dp2px(gmdBulletLength),
                     dp2px(gmdBulletLength),
                     0
                 )
             }
 
-            else -> {
+            FlyType.PLANE_BOSS -> {
                 Boom(
-                    getBoomView(context, flyType),
-                    flyType,
-                    dp2px(gmdPlaneLength),
-                    dp2px(gmdPlaneLength),
+                    getBoomView(context, flyType)!!,
+                    FlyType.BOOM,
+                    dp2px(bossPlaneLength),
+                    dp2px(bossBulletLength),
                     0
                 )
             }
 
-        }
-    }
-
-    /**
-     * 获取爆炸效果的View
-     */
-    private fun getBoomView(context: Context, flyType: FlyType): View {
-        var view: View
-        when (flyType) {
-            FlyType.BOOM_GMD_PLANE -> {
-                view = FlyBoomView(context, FlyColors.GMD_PLANE_WING)
-            }
-            FlyType.BOOM_GMD_BULLET -> {
-                view = FlyBoomView(context, FlyColors.GMD_BULLET)
+            FlyType.BULLET_BOSS -> {
+                Boom(
+                    getBoomView(context, flyType)!!,
+                    FlyType.BOOM,
+                    dp2px(bossBulletLength),
+                    dp2px(bossBulletLength),
+                    0
+                )
             }
 
-            FlyType.BOOM_GCD_PLANE -> {
-                view = FlyBoomView(context, FlyColors.GCD_PLANE_WING)
-            }
-
-            FlyType.BOOM_GCD_BULLET -> {
-                view = FlyBoomView(context, FlyColors.GCD_BULLET)
-            }
             else -> {
-                view = FlyBoomView(context)
+                null
             }
 
         }
-        return view
     }
 
     /**
      * 获取飞机或子弹的View
      */
-    private fun getView(context: Context, flyType: FlyType): View {
-        var view: View? = null
-        when (flyType) {
-            FlyType.PLANE_GCD -> {
-                view = PlaneGcdView(context)
-            }
+    private fun getBoomView(context: Context, flyType: FlyType): View? {
+        return when (flyType) {
             FlyType.PLANE_GMD -> {
-                view = PlaneGmdView(context)
-                view.isReverse = true
-            }
-            FlyType.BULLET_GCD -> {
-                view = BulletGcdView(context)
+                FlyBoomView(context, GMD_PLANE_WING)
             }
             FlyType.BULLET_GMD -> {
-                view = BulletGmdView(context)
-                view.isReverse = true
+                FlyBoomView(context, GMD_BULLET)
             }
-            FlyType.BOSS -> {
-                view = PlaneGmdView(context)
-                view.isReverse = true
+            FlyType.PLANE_GCD -> {
+                FlyBoomView(context, GCD_PLANE_WING)
+            }
+            FlyType.BULLET_GCD -> {
+                FlyBoomView(context, GCD_BULLET)
+            }
+            FlyType.PLANE_BOSS -> {
+                FlyBoomView(context, BOSS_PLANE_WING)
             }
             FlyType.BULLET_BOSS -> {
-                view = BulletGmdView(context)
-                view.isReverse = true
+                FlyBoomView(context, BOSS_BULLET)
             }
+            else -> null
         }
-        return view!!
+    }
+
+    /**
+     * 获取飞机或子弹的View
+     */
+    private fun getView(context: Context, flyType: FlyType): View? {
+        return when (flyType) {
+            FlyType.PLANE_GCD -> {
+                PlaneView(context, GCD_PLANE_WING, GCD_PLANE_BODY, false)
+            }
+            FlyType.PLANE_BOSS -> {
+                PlaneView(context, BOSS_PLANE_WING, BOSS_PLANE_BODY, true)
+            }
+            FlyType.PLANE_GMD -> {
+                PlaneView(context, GMD_PLANE_WING, GMD_PLANE_BODY, true)
+            }
+            FlyType.BULLET_GCD -> {
+                BulletView(context, GCD_BULLET, false)
+            }
+            FlyType.BULLET_GMD -> {
+                BulletView(context, GMD_BULLET, true)
+            }
+            FlyType.BULLET_BOSS -> {
+                BulletView(context, BOSS_BULLET, true)
+            }
+            else -> null
+        }
     }
 
 }

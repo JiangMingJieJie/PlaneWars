@@ -12,9 +12,9 @@ import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * mapView的背景移动动画
+ * 滚动的星空背景
  */
-class MapBackgroundView : BaseView {
+class ScrollStarsView : BaseView {
     /**
      * 圆形集合
      */
@@ -98,6 +98,7 @@ class MapBackgroundView : BaseView {
                         //repeat的时候重置oldAnimateValue
                         if (oldAnimateValue > animateValue) {
                             oldAnimateValue = 0
+                            addRect()
                         }
 
                         circleStars.forEach {
@@ -112,10 +113,6 @@ class MapBackgroundView : BaseView {
                         invalidate()
                     }
 
-                    doOnRepeat {
-                        addRect()
-                    }
-
                     repeatCount = ValueAnimator.INFINITE
                     interpolator = LinearInterpolator()
                     duration = 2000
@@ -123,6 +120,7 @@ class MapBackgroundView : BaseView {
                 }
         }
     }
+
 
     data class CircleStar(var x: Float, var y: Float, var r: Float)
 

@@ -9,37 +9,33 @@ import android.util.AttributeSet
 import com.jmj.planewars.fly.viewtools.FlyFire
 import com.jmj.planewars.tools.dp2px
 
-
+/**
+ * 有火焰效果的基类View
+ */
 abstract class FireView : BaseView {
+    private var flyFire: FlyFire? = null
+    private var isReverse = false
     var horizontalMolecule = 0F
     var verticalMolecule = 0F
-    private var flyFire: FlyFire? = null
-
-    var isReverse = false
-        set(value) {
-            if (value != field) {
-                postInvalidate()
-            }
-            field = value
-        }
-
     var paint = Paint().apply {
         isAntiAlias = true
-        strokeWidth= dp2px(2).toFloat()
+        strokeWidth = dp2px(2).toFloat()
         color = Color.BLACK
         style = Paint.Style.STROKE
     }
 
 
-    constructor(context: Context?) : super(context)
-
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
+
+    constructor(context: Context?, isReverse: Boolean) : super(context) {
+        this.isReverse = isReverse
+    }
 
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         computeRect()
-        elevation= dp2px(10).toFloat()
+        elevation = dp2px(10).toFloat()
     }
 
 

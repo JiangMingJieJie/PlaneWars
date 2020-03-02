@@ -1,11 +1,11 @@
-package com.jmj.planewars.fly.flyobject.bullet
+package com.jmj.planewars.fly.flyobject
 
 import android.view.View
 import com.jmj.planewars.fly.cons.FlyType
-/**
- * 共产主义子弹
- */
-class GcdBullet : Bullet {
+
+class Plane : Fly {
+
+
     constructor(
         view: View,
         flyType: FlyType,
@@ -15,4 +15,7 @@ class GcdBullet : Bullet {
         power: Int,
         HP: Int
     ) : super(view, flyType, w, h, speed, power, HP)
+
+
+
 }

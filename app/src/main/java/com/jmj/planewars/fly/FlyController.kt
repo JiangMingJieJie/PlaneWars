@@ -7,13 +7,14 @@ import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.LinearInterpolator
+import androidx.core.animation.doOnEnd
 import com.jmj.planewars.fly.cons.FlyType
 import com.jmj.planewars.fly.flyfactory.FlyFactory
 import com.jmj.planewars.fly.flyobject.Fly
-import com.jmj.planewars.fly.flyobject.plane.Plane
+import com.jmj.planewars.fly.flyobject.Plane
 import com.jmj.planewars.fly.view.FlyBoomView
 import com.jmj.planewars.fly.view.MapView
-import com.jmj.planewars.tools.myLog
+import com.jmj.planewars.fly.view.PlaneView
 import java.lang.Math.abs
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
@@ -51,7 +52,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
 
     private var random = Random()
 
-    var onGameOverListener: OnGameOverListener? = null
+    var onGameOverListener: OnGameProgressListener? = null
 
 
     init {
@@ -64,11 +65,21 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                 this@FlyController.h = h
                 addGcdPlane()
                 addGmdPlane()
-                timerBoss()
+                startBossTimer()
                 startGmdPlaneShotThread()
             }
         }
     }
+
+    /**
+     * 重新开始游戏
+     */
+    fun reStart() {
+        isGameOver = false
+        addGcdPlane()
+        startBossTimer()
+    }
+
 
     /**
      * 我的飞机自动发射子弹线程
@@ -95,85 +106,76 @@ class FlyController(private var activity: Activity, private var mapView: MapView
             while (!isQuitGame) {
                 gmdPlanes.forEach {
                     activity.runOnUiThread {
-                        shot(it as Plane)
+                        if (random.nextInt(3) % 3 == 0 || it.flyType == FlyType.PLANE_BOSS)
+                            shot(it as Plane)
                     }
                 }
-                SystemClock.sleep(4000)
+                SystemClock.sleep(2000)
 
             }
         }.start()
     }
 
-    fun reStart() {
-        isGameOver = false
-        addGcdPlane()
+    private fun startBossTimer() {
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                activity.runOnUiThread {
+                    createPlane(FlyType.PLANE_BOSS)
+                }
+            }
+        }, random.nextInt(10000) + 10000.toLong())
     }
+
 
     /**
      * 添加我的飞机
      */
     fun addGcdPlane() {
-        //创建我的飞机
-        var gcdPlane = FlyFactory.getPlane(activity, FlyType.PLANE_GCD)
-        //指定我的飞机的位置
-        gcdPlane.x = w / 2F - gcdPlane.w / 2
-        gcdPlane.y = h - gcdPlane.h.toFloat()
-        //添加到集合
-        addFly(gcdPlane)
-        //开启拖拽
-        openFlyDrag(gcdPlane)
-
+        createPlane(FlyType.PLANE_GCD)
         startGcdPlaneShotThread()
-
     }
-
-    private fun timerBoss() {
-        Timer().schedule(object : TimerTask() {
-            override fun run() {
-                activity.runOnUiThread {
-                    createGmdPlane(FlyType.BOSS)
-                }
-            }
-        }, 10000)
-    }
-
 
     /**
-     * 创建敌机Fly
+     * 添加敌机
      */
-    private fun createGmdPlane(flyType: FlyType) {
-        val plane = FlyFactory.getPlane(activity, flyType)
-        //随机布放位置
-        plane.x = (w - plane.w) * random.nextFloat()
-        plane.y = (-plane.w).toFloat()
-        addFly(plane)
-        moveFly(plane)
+    private fun addGmdPlane() {
+        for (i in 0 until gmdPlaneCount) {
+            createPlane(FlyType.PLANE_GMD)
+        }
     }
 
+
     /**
-     * 创建爆炸效果的fly
+     * 创建飞机并添加到集合
+     */
+    private fun createPlane(flyType: FlyType) {
+        val plane = FlyFactory.getPlane(activity, flyType)!!
+        if (flyType == FlyType.PLANE_GCD) {
+            //我的飞机的位置
+            plane.x = w / 2F - plane.w / 2
+            plane.y = h - plane.h.toFloat()
+            (plane.view as PlaneView).openMask()
+            openFlyDrag(plane)
+        } else if (flyType == FlyType.PLANE_GMD) {
+            //敌机的位置
+            plane.x = (w - plane.w) * random.nextFloat()
+            plane.y = -plane.h * 2F
+        } else {
+            //boss机的位置
+            plane.x = (w - plane.w) * random.nextFloat()
+            plane.y = -plane.h * 2F
+            moveFlyX(plane)
+        }
+        addFly(plane)
+        moveFlyY(plane)
+    }
+
+
+    /**
+     * 创建爆炸效果
      */
     private fun createBoom(fly: Fly) {
-        var flyType = when (fly.flyType) {
-            FlyType.PLANE_GCD -> {
-                FlyType.BOOM_GCD_PLANE
-            }
-            FlyType.BULLET_GCD -> {
-                FlyType.BOOM_GCD_BULLET
-
-            }
-            FlyType.PLANE_GMD -> {
-                FlyType.BOOM_GMD_PLANE
-            }
-            FlyType.BULLET_GMD -> {
-                FlyType.BOOM_GMD_BULLET
-            }
-            else -> {
-                FlyType.BOOM
-            }
-        }
-
-        val boom = FlyFactory.getBoom(activity, flyType)
+        val boom = FlyFactory.getBoom(activity, fly.flyType)!!
         boom.x = (fly.cx - boom.w / 2)
         boom.y = (fly.cy - boom.h / 2)
         mapView.addFly(boom)
@@ -189,59 +191,51 @@ class FlyController(private var activity: Activity, private var mapView: MapView
 
 
     /**
-     * 添加敌机Fly
-     */
-    private fun addGmdPlane() {
-        for (i in 0 until gmdPlaneCount) {
-            createGmdPlane(FlyType.PLANE_GMD)
-        }
-    }
-
-
-    /**
      * 发射子弹
      */
     private fun shot(plane: Plane) {
-        val bullet = plane.shotBullet()!!
+
+        val bullet = FlyFactory.getBullet(activity, plane.flyType)!!
+
+        bullet.x = (plane.cx - bullet.w / 2)
+
+        bullet.y = (plane.cy - bullet.h / 2)
+
         addFly(bullet)
-        moveFly(bullet)
+
+        moveFlyY(bullet)
     }
 
 
     /**
-     * 移动Fly
+     * y轴移动Fly
      */
-    private fun moveFly(fly: Fly) {
+    private fun moveFlyY(fly: Fly) {
         var start = fly.cy
 
         var end = when (fly.flyType) {
             FlyType.BULLET_GCD -> {
-                -fly.h * 2F
+                -fly.h * 2
             }
             FlyType.PLANE_GCD -> {
-                -fly.h * 2F
+                return
             }
             FlyType.PLANE_GMD -> {
-                h + fly.h * 2F
+                h + fly.h * 2
             }
             FlyType.BULLET_GMD -> {
-                h + fly.h * 2F
-
+                h + fly.h * 2
             }
-            FlyType.BOSS -> {
-                h + fly.h * 2F
-            }
-            FlyType.BULLET_BOSS -> {
-                h + fly.h * 2F
+            FlyType.PLANE_BOSS -> {
+                0
             }
             else -> {
-                -fly.h * 6F
+                h + fly.h * 2
             }
         }
 
 
-
-        ValueAnimator.ofFloat(start, end)
+        ValueAnimator.ofFloat(start, end.toFloat())
             .apply {
                 addUpdateListener {
                     //如果飞出屏幕 或者碰撞了之后导致销毁 则停止动画
@@ -255,39 +249,57 @@ class FlyController(private var activity: Activity, private var mapView: MapView
 
                     //超出屏幕检测
                     if (checkFlyPosition(fly)) {
-                        when (fly.flyType) {
-                            FlyType.BULLET_GCD -> {
-                                gcdBulletIsCollision(fly, gmdPlanes)
-                            }
-                            FlyType.BULLET_GMD -> {
-                                gcdBulletIsCollision(fly, gcdPlanes)
-                            }
-                            FlyType.PLANE_GMD -> {
-                                gcdBulletIsCollision(fly, gcdPlanes)
-                            }
-                        }
-
+                        selectHitAndBeHit(fly)
                     }
                 }
                 duration = (abs(start - end)).toLong() * fly.speed
                 interpolator = LinearInterpolator()
                 start()
-
             }
+
     }
+
+    /**
+     * X轴移动Fly
+     */
+    private fun moveFlyX(fly: Fly) {
+        var start = fly.x
+        var end = if (fly.x < w - fly.w) {
+            w.toFloat() - fly.w
+        } else {
+            0F
+        }
+        ValueAnimator.ofFloat(start, end).apply {
+            addUpdateListener {
+                fly.x = it.animatedValue as Float
+                //超出屏幕检测
+                if (checkFlyPosition(fly)) {
+                    selectHitAndBeHit(fly)
+                }
+            }
+            duration = (abs(start - end)).toLong() * fly.speed
+            interpolator = LinearInterpolator()
+            doOnEnd {
+                moveFlyX(fly)
+            }
+            start()
+        }
+    }
+
 
     /**
      * Fly位置检测 如果已经超出屏幕则删除
      */
     private fun checkFlyPosition(fly: Fly): Boolean {
+        if (fly.flyType == FlyType.PLANE_BOSS) return true
         //如果view已经不再屏幕内了 删除它
-        if (fly.x + fly.w <= -fly.w * 2 ||
+        if (fly.x + fly.w <= -fly.w ||
 
-            fly.x >= w + fly.w * 2 ||
+            fly.x >= w + fly.w ||
 
-            fly.y + fly.h <= -fly.h * 2 ||
+            fly.y + fly.h <= -fly.h ||
 
-            fly.y >= h + fly.h * 2
+            fly.y >= h + fly.h
         ) {
             removeFly(fly)
             return false
@@ -296,9 +308,32 @@ class FlyController(private var activity: Activity, private var mapView: MapView
     }
 
     /**
-     * 我的子弹是否碰撞到敌机
+     * 通过flyType来决定选择哪个集合中的元素与它进行碰撞检测
      */
-    private fun gcdBulletIsCollision(hitFly: Fly, beHitFlys: CopyOnWriteArrayList<Fly>) {
+    private fun selectHitAndBeHit(fly: Fly) {
+        when (fly.flyType) {
+            FlyType.BULLET_GCD -> {
+                hitAndBeHit(fly, gmdPlanes)
+            }
+            FlyType.BULLET_GMD -> {
+                hitAndBeHit(fly, gcdPlanes)
+            }
+            FlyType.PLANE_GMD -> {
+                hitAndBeHit(fly, gcdPlanes)
+            }
+            FlyType.PLANE_BOSS -> {
+                hitAndBeHit(fly, gcdPlanes)
+            }
+            FlyType.BULLET_BOSS -> {
+                hitAndBeHit(fly, gcdPlanes)
+            }
+        }
+    }
+
+    /**
+     * 碰撞和被碰撞检测
+     */
+    private fun hitAndBeHit(hitFly: Fly, beHitFlys: CopyOnWriteArrayList<Fly>) {
         for (beHitFly in beHitFlys) {
             //碰撞之后跳出循环
             if (isCollision(
@@ -427,17 +462,18 @@ class FlyController(private var activity: Activity, private var mapView: MapView
             FlyType.BULLET_GMD -> {
                 gmdBullets.add(fly)
             }
+            FlyType.BULLET_BOSS -> {
+                gmdBullets.add(fly)
+            }
+            FlyType.PLANE_BOSS -> {
+                gmdPlanes.add(fly)
+            }
             FlyType.PLANE_GCD -> {
                 gcdPlanes.add(fly)
             }
             FlyType.PLANE_GMD -> {
                 gmdPlanes.add(fly)
             }
-            FlyType.BOSS -> {
-                myLog("addBoss")
-                gmdPlanes.add(fly)
-            }
-
         }
         mapView.addFly(fly)
     }
@@ -451,18 +487,21 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                 gcdBullets.remove(fly)
             }
             FlyType.BULLET_GMD -> {
-                gcdBullets.remove(fly)
+                gmdBullets.remove(fly)
             }
             FlyType.PLANE_GMD -> {
-                createGmdPlane(FlyType.PLANE_GMD)
-                gmdPlanes.remove(fly)
-            }
-            FlyType.BOSS -> {
-                timerBoss()
+                createPlane(FlyType.PLANE_GMD)
                 gmdPlanes.remove(fly)
             }
             FlyType.PLANE_GCD -> {
                 gcdPlanes.remove(fly)
+            }
+            FlyType.BULLET_BOSS -> {
+                gmdBullets.remove(fly)
+            }
+            FlyType.PLANE_BOSS -> {
+                startBossTimer()
+                gmdPlanes.remove(fly)
             }
         }
         mapView.removeFly(fly)
@@ -473,7 +512,9 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         isQuitGame = true
     }
 
-    interface OnGameOverListener {
-        fun onGameOver()
+    interface OnGameProgressListener {
+        fun onGameOver() {}
+        fun onStart() {}
+        fun onPause() {}
     }
 }

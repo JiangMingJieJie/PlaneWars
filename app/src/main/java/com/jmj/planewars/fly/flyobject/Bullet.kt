@@ -1,9 +1,14 @@
-package com.jmj.planewars.fly.flyobject.bullet
+package com.jmj.planewars.fly.flyobject
 
 import android.view.View
 import com.jmj.planewars.fly.cons.FlyType
+import com.jmj.planewars.fly.flyobject.Fly
 
-class GmdBullet : Bullet {
+
+class Bullet : Fly {
+
+    var bulletColor = 0
+
     constructor(
         view: View,
         flyType: FlyType,
