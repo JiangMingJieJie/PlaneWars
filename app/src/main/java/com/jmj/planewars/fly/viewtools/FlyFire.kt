@@ -3,16 +3,16 @@ package com.jmj.planewars.fly.viewtools
 import android.animation.ValueAnimator
 import android.graphics.*
 import android.view.View
-import java.util.ArrayList
+import java.util.concurrent.CopyOnWriteArrayList
 
 class FlyFire(private var rect: Rect, private var view: View) {
-    private val particles = ArrayList<Particle>()
+    private val particles = CopyOnWriteArrayList<Particle>()
     private var borderWidth = 0
     private var paint = Paint()
     private var fireAnim: ValueAnimator? = null
 
     init {
-        paint.color = Color.RED
+        paint.color = Color.LTGRAY
     }
 
     /**
@@ -20,7 +20,7 @@ class FlyFire(private var rect: Rect, private var view: View) {
      */
     private fun draw(canvas: Canvas) {
         if (fireAnim == null) {
-            fireAnim = ValueAnimator.ofInt(0, 1)
+            fireAnim = ValueAnimator.ofFloat(0F, 1F)
                 .apply {
                     addUpdateListener {
                         view.invalidate()
@@ -70,10 +70,7 @@ class FlyFire(private var rect: Rect, private var view: View) {
             it.y = it.y + it.yv
         }
 
-        //定义一个临时数组遍历 删除其中已经走出屏幕的粒子
-        val tempParticles = ArrayList<Particle>()
-        tempParticles.addAll(particles)
-        tempParticles.forEach {
+        particles.forEach {
             if (it.y > rect.bottom) {
                 particles.remove(it)
             }

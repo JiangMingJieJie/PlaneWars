@@ -4,7 +4,6 @@ import android.view.View
 import com.jmj.planewars.fly.cons.FlyType
 import com.jmj.planewars.fly.flyobject.Fly
 import com.jmj.planewars.fly.flyobject.bullet.Bullet
-import com.jmj.planewars.fly.view.FlyView
 
 
 abstract class Plane : Fly {

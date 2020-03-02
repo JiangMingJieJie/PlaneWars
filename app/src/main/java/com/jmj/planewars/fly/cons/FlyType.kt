@@ -11,5 +11,7 @@ enum class FlyType {
     BOOM_GCD_PLANE,
     BOOM_GCD_BULLET,
     BOOM,
+    BOSS,
+    BULLET_BOSS,
     OTHER //其他
 }

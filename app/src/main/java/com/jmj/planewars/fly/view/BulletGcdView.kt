@@ -2,21 +2,19 @@ package com.jmj.planewars.fly.view
 
 import android.content.Context
 import android.graphics.*
-import android.os.Build
 import android.util.AttributeSet
-import androidx.annotation.RequiresApi
+import com.jmj.planewars.fly.cons.FlyColors
 
 /**
  * 飞机
  */
-class BulletGcdView : FlyView {
+class BulletGcdView : FireView {
 
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.let {
-            paint.color = Color.parseColor("#008577")
+            paint.color = FlyColors.GCD_BULLET
 
             it.drawRoundRect(
                 horizontalMolecule * 2,

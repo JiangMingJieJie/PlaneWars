@@ -11,7 +11,12 @@
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#D4D7D8" />
+        android:background="#D4D7D8" >
+        <com.jmj.planewars.fly.view.MapBackgroundView
+            android:id="@+id/mbv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </com.jmj.planewars.fly.view.MapView>
 
 
 </FrameLayout>

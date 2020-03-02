@@ -1,19 +1,18 @@
 package com.jmj.planewars.fly.view
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.util.AttributeSet
-import android.view.View
 import com.jmj.planewars.fly.viewtools.FlyFire
 import com.jmj.planewars.tools.dp2px
 
 
-abstract class FlyView : View {
-    var w = 0F
-    var h = 0F
-    var cx = 0F
-    var cy = 0F
+abstract class FireView : BaseView {
+    var horizontalMolecule = 0F
+    var verticalMolecule = 0F
     private var flyFire: FlyFire? = null
 
     var isReverse = false
@@ -37,21 +36,10 @@ abstract class FlyView : View {
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
 
 
-    @SuppressLint("DrawAllocation")
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        w = measuredWidth.toFloat()
-        h = measuredHeight.toFloat()
-        cx = w / 2
-        cy = h / 2
         computeRect()
-    }
-
-    /**
-     * TODO 爆炸效果
-     */
-    fun boom() {
-
+        elevation= dp2px(10).toFloat()
     }
 
 
@@ -65,8 +53,7 @@ abstract class FlyView : View {
         }
     }
 
-    var horizontalMolecule = 0F
-    var verticalMolecule = 0F
+
     /**
      * 计算每块区域的具体位置
      */
@@ -78,7 +65,6 @@ abstract class FlyView : View {
         horizontalMolecule = w / horizontalDenominator
         //竖向每份的长度
         verticalMolecule = h / verticalDenominator
-
 
         var rect = Rect(
             (horizontalMolecule * 2).toInt(),

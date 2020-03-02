@@ -5,11 +5,12 @@ import android.graphics.*
 import android.os.Build
 import android.util.AttributeSet
 import androidx.annotation.RequiresApi
+import com.jmj.planewars.fly.cons.FlyColors
 
 /**
  * 飞机
  */
-class PlaneGmdView : FlyView {
+class PlaneGmdView : FireView {
 
 
     constructor(context: Context?) : super(context)
@@ -25,7 +26,7 @@ class PlaneGmdView : FlyView {
 
 
         canvas?.let {
-            paint.color = Color.parseColor("#795548")
+            paint.color = FlyColors.GMD_PLANE_BODY
 
             it.drawRoundRect(
                 horizontalMolecule * 2,
@@ -36,7 +37,7 @@ class PlaneGmdView : FlyView {
                 10F,
                 paint
             )
-            paint.color = Color.parseColor("#607d8b")
+            paint.color =FlyColors.GMD_PLANE_WING
 
             it.drawRoundRect(
                 0F,
@@ -47,7 +48,6 @@ class PlaneGmdView : FlyView {
                 10F,
                 paint
             )
-            paint.color = Color.parseColor("#607d8b")
 
 
             it.drawRoundRect(

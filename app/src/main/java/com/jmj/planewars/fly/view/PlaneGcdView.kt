@@ -3,15 +3,14 @@ package com.jmj.planewars.fly.view
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
-import android.os.Build
 import android.util.AttributeSet
-import androidx.annotation.RequiresApi
-import com.jmj.planewars.tools.myLog
+import com.jmj.planewars.fly.cons.FlyColors.GCD_PLANE_BODY
+import com.jmj.planewars.fly.cons.FlyColors.GCD_PLANE_WING
 
 /**
  * 飞机
  */
-class PlaneGcdView : FlyView {
+class PlaneGcdView : FireView {
 
     private var maskColor = 0
 
@@ -23,11 +22,10 @@ class PlaneGcdView : FlyView {
         maskAnim()
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.let {
-            paint.color = Color.parseColor("#D81B60")
+            paint.color = GCD_PLANE_BODY
 
             it.drawRoundRect(
                 horizontalMolecule * 2,
@@ -38,7 +36,7 @@ class PlaneGcdView : FlyView {
                 10F,
                 paint
             )
-            paint.color = Color.parseColor("#008577")
+            paint.color = GCD_PLANE_WING
 
             it.drawRoundRect(
                 0F,
@@ -49,7 +47,6 @@ class PlaneGcdView : FlyView {
                 10F,
                 paint
             )
-            paint.color = Color.parseColor("#008577")
 
 
             it.drawRoundRect(
@@ -61,9 +58,9 @@ class PlaneGcdView : FlyView {
                 10F,
                 paint
             )
+
             if (maskColor != 0) {
                 paint.color = maskColor
-                paint.alpha = 0x33
                 it.drawCircle(cx, cy, w.coerceAtMost(h) / 2 * 1.5F, paint)
                 paint.alpha = 0xFF
             }
@@ -71,7 +68,7 @@ class PlaneGcdView : FlyView {
     }
 
     fun maskAnim() {
-        ValueAnimator.ofArgb(Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE)
+        ValueAnimator.ofArgb(Color.parseColor("#55FFFFFF"), Color.parseColor("#11FFFFFF"))
             .apply {
                 addUpdateListener {
                     maskColor = it.animatedValue as Int
@@ -79,7 +76,7 @@ class PlaneGcdView : FlyView {
                 }
                 repeatCount = ValueAnimator.INFINITE
                 repeatMode = ValueAnimator.REVERSE
-                duration = 4000
+                duration = 1000
                 start()
             }
 

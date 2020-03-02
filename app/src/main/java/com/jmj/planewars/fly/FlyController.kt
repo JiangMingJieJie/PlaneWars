@@ -10,7 +10,6 @@ import android.view.animation.LinearInterpolator
 import com.jmj.planewars.fly.cons.FlyType
 import com.jmj.planewars.fly.flyfactory.FlyFactory
 import com.jmj.planewars.fly.flyobject.Fly
-import com.jmj.planewars.fly.flyobject.bullet.Bullet
 import com.jmj.planewars.fly.flyobject.plane.Plane
 import com.jmj.planewars.fly.view.FlyBoomView
 import com.jmj.planewars.fly.view.MapView
@@ -18,7 +17,6 @@ import com.jmj.planewars.tools.myLog
 import java.lang.Math.abs
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.collections.ArrayList
 
 
 class FlyController(private var activity: Activity, private var mapView: MapView) {
@@ -57,17 +55,24 @@ class FlyController(private var activity: Activity, private var mapView: MapView
 
 
     init {
+        /**
+         * mapView测量完成
+         */
         mapView.onMeasureFinishListener = object : MapView.OnViewLoadFinishListener {
             override fun onFinish(w: Int, h: Int) {
                 this@FlyController.w = w
                 this@FlyController.h = h
                 addGcdPlane()
                 addGmdPlane()
+                timerBoss()
                 startGmdPlaneShotThread()
             }
         }
     }
 
+    /**
+     * 我的飞机自动发射子弹线程
+     */
     private fun startGcdPlaneShotThread() {
         Thread {
             while (!isGameOver) {
@@ -82,7 +87,9 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         }.start()
     }
 
-
+    /**
+     * 敌机自动发射子弹线程
+     */
     private fun startGmdPlaneShotThread() {
         Thread {
             while (!isQuitGame) {
@@ -117,17 +124,28 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         openFlyDrag(gcdPlane)
 
         startGcdPlaneShotThread()
+
+    }
+
+    private fun timerBoss() {
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                activity.runOnUiThread {
+                    createGmdPlane(FlyType.BOSS)
+                }
+            }
+        }, 10000)
     }
 
 
     /**
      * 创建敌机Fly
      */
-    private fun createGmdPlane() {
-        val plane = FlyFactory.getPlane(activity, FlyType.PLANE_GMD)
+    private fun createGmdPlane(flyType: FlyType) {
+        val plane = FlyFactory.getPlane(activity, flyType)
         //随机布放位置
-        plane.x = w * random.nextFloat()
-        plane.y = -plane.w * 2F
+        plane.x = (w - plane.w) * random.nextFloat()
+        plane.y = (-plane.w).toFloat()
         addFly(plane)
         moveFly(plane)
     }
@@ -175,7 +193,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
      */
     private fun addGmdPlane() {
         for (i in 0 until gmdPlaneCount) {
-            createGmdPlane()
+            createGmdPlane(FlyType.PLANE_GMD)
         }
     }
 
@@ -195,13 +213,34 @@ class FlyController(private var activity: Activity, private var mapView: MapView
      */
     private fun moveFly(fly: Fly) {
         var start = fly.cy
-        var end = if (fly.flyType == FlyType.BULLET_GCD || fly.flyType == FlyType.PLANE_GCD) {
-            //我的子弹 自下而上
-            -fly.h * 6F
-        } else {
-            //敌机子弹 自上而下
-            h + fly.h * 6F
+
+        var end = when (fly.flyType) {
+            FlyType.BULLET_GCD -> {
+                -fly.h * 2F
+            }
+            FlyType.PLANE_GCD -> {
+                -fly.h * 2F
+            }
+            FlyType.PLANE_GMD -> {
+                h + fly.h * 2F
+            }
+            FlyType.BULLET_GMD -> {
+                h + fly.h * 2F
+
+            }
+            FlyType.BOSS -> {
+                h + fly.h * 2F
+            }
+            FlyType.BULLET_BOSS -> {
+                h + fly.h * 2F
+            }
+            else -> {
+                -fly.h * 6F
+            }
         }
+
+
+
         ValueAnimator.ofFloat(start, end)
             .apply {
                 addUpdateListener {
@@ -242,13 +281,13 @@ class FlyController(private var activity: Activity, private var mapView: MapView
      */
     private fun checkFlyPosition(fly: Fly): Boolean {
         //如果view已经不再屏幕内了 删除它
-        if (fly.x + fly.w <= -fly.w * 4 ||
+        if (fly.x + fly.w <= -fly.w * 2 ||
 
-            fly.x >= w + fly.w * 4 ||
+            fly.x >= w + fly.w * 2 ||
 
-            fly.y + fly.h <= -fly.h * 4 ||
+            fly.y + fly.h <= -fly.h * 2 ||
 
-            fly.y >= h + fly.h * 4
+            fly.y >= h + fly.h * 2
         ) {
             removeFly(fly)
             return false
@@ -394,6 +433,10 @@ class FlyController(private var activity: Activity, private var mapView: MapView
             FlyType.PLANE_GMD -> {
                 gmdPlanes.add(fly)
             }
+            FlyType.BOSS -> {
+                myLog("addBoss")
+                gmdPlanes.add(fly)
+            }
 
         }
         mapView.addFly(fly)
@@ -411,7 +454,11 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                 gcdBullets.remove(fly)
             }
             FlyType.PLANE_GMD -> {
-                createGmdPlane()
+                createGmdPlane(FlyType.PLANE_GMD)
+                gmdPlanes.remove(fly)
+            }
+            FlyType.BOSS -> {
+                timerBoss()
                 gmdPlanes.remove(fly)
             }
             FlyType.PLANE_GCD -> {

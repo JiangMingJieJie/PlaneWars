@@ -2,7 +2,6 @@ package com.jmj.planewars.fly.flyobject.bullet
 
 import android.view.View
 import com.jmj.planewars.fly.cons.FlyType
-import com.jmj.planewars.fly.view.FlyView
 
 class GmdBullet : Bullet {
     constructor(

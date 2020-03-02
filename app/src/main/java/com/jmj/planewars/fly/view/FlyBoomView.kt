@@ -2,33 +2,27 @@ package com.jmj.planewars.fly.view
 
 import android.animation.Animator
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.view.View
-import android.view.ViewGroup
 import android.view.animation.LinearInterpolator
-import androidx.core.animation.addListener
 import com.jmj.planewars.tools.dp2px
-import com.jmj.planewars.tools.myLog
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
  * 爆炸效果
  */
-class FlyBoomView : View {
-    private var w = 0F
-    private var h = 0F
-    private var cx = 0F
-    private var cy = 0F
+class FlyBoomView : BaseView {
 
+    private var rects = ArrayList<Rect>()
+    private var BOOM_DURATION = 500L
     var animatorListener: AnimatorListener? = null
-    var paint = Paint().apply {
+
+    private var paint = Paint().apply {
         isAntiAlias = true
         strokeWidth = dp2px(2).toFloat()
         color = color
@@ -42,9 +36,11 @@ class FlyBoomView : View {
 
     constructor(context: Context?, attrs: AttributeSet?) : super(context, attrs)
 
-    private var rects = ArrayList<Rect>()
 
-
+    /**
+     * 所有的方块实际都朝同一个方向移动
+     * 每移动一个旋转30° 造成圆形扩散效果
+     */
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         for (index in rects.indices) {
@@ -55,7 +51,6 @@ class FlyBoomView : View {
     }
 
 
-    @SuppressLint("DrawAllocation")
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         w = measuredWidth.toFloat()
@@ -66,14 +61,17 @@ class FlyBoomView : View {
         boomAnim()
     }
 
-    fun boomAnim() {
+    /**
+     * 移动方块动画
+     */
+    private fun boomAnim() {
         val animEnd = (sqrt(w.coerceAtLeast(h).toDouble().pow(2.0)) / 2).toInt()
         var oldAnimatedValue = 0
-        ValueAnimator.ofInt(0, animEnd).apply {
+        ValueAnimator.ofInt(0, (animEnd*1.5F).toInt()).apply {
             addUpdateListener {
 
                 val animatedValue = it.animatedValue as Int
-                paint.alpha = (255 - (animatedValue * (255F / (animEnd)))).toInt()
+                paint.alpha = (255 - (animatedValue * (255F / (animEnd*1.5F)))).toInt()
 
                 for (index in rects.indices) {
                     val rect = rects[index]
@@ -86,7 +84,7 @@ class FlyBoomView : View {
                 invalidate()
             }
             interpolator = LinearInterpolator()
-            duration = 800
+            duration = BOOM_DURATION
             addListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {
                 }
@@ -105,6 +103,9 @@ class FlyBoomView : View {
         }
     }
 
+    /**
+     * 添加12个方块在View的中心
+     */
     private fun computeRect() {
         rects.clear()
         if (rects.size == 0) {

@@ -3,6 +3,7 @@ package com.jmj.planewars.fly.flyfactory
 import android.content.Context
 import android.graphics.Color
 import android.view.View
+import com.jmj.planewars.fly.cons.FlyColors
 import com.jmj.planewars.fly.cons.FlyType
 import com.jmj.planewars.fly.flyobject.Boom
 import com.jmj.planewars.fly.flyobject.bullet.Bullet
@@ -25,6 +26,8 @@ object FlyFactory {
      * 敌机大小
      */
     private var gmdPlaneLength = 30
+
+    private var bossLength = 100
     /**
      * 我的飞机子弹大小
      */
@@ -32,7 +35,7 @@ object FlyFactory {
     /**
      * 敌机子弹大小
      */
-    private var gmdBulletLength = 15
+    private var gmdBulletLength = 20
     /**
      * 我的飞机HP
      */
@@ -45,10 +48,13 @@ object FlyFactory {
      * 敌机HP
      */
     private var gmdPlaneHp = 100
+
+    private var bossHp = 3000
     /**
      * 敌机碰撞威力
      */
     private var gmdPlanePower = 100
+    private var bossPower = 1000
     /**
      * 我的子弹HP
      */
@@ -65,6 +71,8 @@ object FlyFactory {
      * 敌机子弹威力
      */
     private var gmdBulletPower = 100
+
+
     /**
      * 获取飞机
      */
@@ -87,9 +95,20 @@ object FlyFactory {
                     flyType,
                     dp2px(gmdPlaneLength),
                     dp2px(gmdPlaneLength),
-                    random.nextInt(10) + 5,
+                    random.nextInt(3) + 3,
                     gmdPlanePower,
                     gmdPlaneHp
+                )
+            }
+            FlyType.BOSS -> {
+                GmdPlane(
+                    getView(context, flyType),
+                    flyType,
+                    dp2px(bossLength),
+                    dp2px(bossLength),
+                    20,
+                    bossPower,
+                    bossHp
                 )
             }
             else -> {
@@ -98,7 +117,7 @@ object FlyFactory {
                     flyType,
                     dp2px(gmdPlaneLength),
                     dp2px(gmdPlaneLength),
-                    random.nextInt(10) + 5,
+                    random.nextInt(3) + 3,
                     gmdPlanePower,
                     gmdPlaneHp
                 )
@@ -128,7 +147,18 @@ object FlyFactory {
                     flyType,
                     dp2px(gmdBulletLength),
                     dp2px(gmdBulletLength),
-                    3,
+                    random.nextInt(3),
+                    gmdBulletPower,
+                    gmdBulletHP
+                )
+            }
+            FlyType.BULLET_BOSS -> {
+                GmdBullet(
+                    getView(context, flyType),
+                    flyType,
+                    dp2px(40),
+                    dp2px(40),
+                    1,
                     gmdBulletPower,
                     gmdBulletHP
                 )
@@ -139,13 +169,14 @@ object FlyFactory {
                     flyType,
                     dp2px(gmdBulletLength),
                     dp2px(gmdBulletLength),
-                    3,
+                    random.nextInt(3),
                     gmdBulletPower,
                     gmdBulletHP
                 )
             }
         }
     }
+
     /**
      * 获取爆炸效果的Fly
      */
@@ -210,18 +241,18 @@ object FlyFactory {
         var view: View
         when (flyType) {
             FlyType.BOOM_GMD_PLANE -> {
-                view = FlyBoomView(context, Color.parseColor("#795548"))
+                view = FlyBoomView(context, FlyColors.GMD_PLANE_WING)
             }
             FlyType.BOOM_GMD_BULLET -> {
-                view = FlyBoomView(context)
+                view = FlyBoomView(context, FlyColors.GMD_BULLET)
             }
 
             FlyType.BOOM_GCD_PLANE -> {
-                view = FlyBoomView(context)
+                view = FlyBoomView(context, FlyColors.GCD_PLANE_WING)
             }
 
             FlyType.BOOM_GCD_BULLET -> {
-                view = FlyBoomView(context, Color.parseColor("#008577"))
+                view = FlyBoomView(context, FlyColors.GCD_BULLET)
             }
             else -> {
                 view = FlyBoomView(context)
@@ -248,6 +279,14 @@ object FlyFactory {
                 view = BulletGcdView(context)
             }
             FlyType.BULLET_GMD -> {
+                view = BulletGmdView(context)
+                view.isReverse = true
+            }
+            FlyType.BOSS -> {
+                view = PlaneGmdView(context)
+                view.isReverse = true
+            }
+            FlyType.BULLET_BOSS -> {
                 view = BulletGmdView(context)
                 view.isReverse = true
             }
