@@ -153,6 +153,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
      */
     private fun createPlane(flyType: FlyType) {
         val plane = FlyFactory.getPlane(activity, flyType)!!
+
         if (flyType == FlyType.PLANE_GCD) {
             //我的飞机的位置
             plane.x = w / 2F - plane.w / 2
@@ -169,7 +170,9 @@ class FlyController(private var activity: Activity, private var mapView: MapView
             plane.y = -plane.h * 2F
             moveFlyX(plane)
         }
+
         addFly(plane)
+
         moveFlyY(plane)
     }
 
@@ -336,18 +339,23 @@ class FlyController(private var activity: Activity, private var mapView: MapView
     private fun selectHitAndBeHit(fly: Fly) {
         when (fly.flyType) {
             FlyType.BULLET_GCD -> {
+                //如果是我的子弹，则与敌机集合检测
                 hitAndBeHit(fly, gmdPlanes)
             }
             FlyType.BULLET_GMD -> {
+                //如果是敌机的子弹则与我机检测
                 hitAndBeHit(fly, gcdPlanes)
             }
             FlyType.PLANE_GMD -> {
+                //...
                 hitAndBeHit(fly, gcdPlanes)
             }
             FlyType.PLANE_BOSS -> {
+                //...
                 hitAndBeHit(fly, gcdPlanes)
             }
             FlyType.BULLET_BOSS -> {
+                //...
                 hitAndBeHit(fly, gcdPlanes)
             }
         }
@@ -523,7 +531,6 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                 gcdPlanes.remove(fly)
             }
             FlyType.BULLET_BOSS -> {
-                myLog("removeboss")
                 gmdBullets.remove(fly)
             }
             FlyType.PLANE_BOSS -> {

@@ -68,7 +68,6 @@ class PlaneView : FireView {
                 paint
             )
 
-
             it.drawRoundRect(
                 horizontalMolecule,
                 verticalMolecule * 4 - verticalMolecule,

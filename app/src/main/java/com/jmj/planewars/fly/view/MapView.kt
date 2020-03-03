@@ -50,7 +50,6 @@ class MapView : ViewGroup {
         }
     }
 
-
     /**
      * 添加飞行物
      */
@@ -65,7 +64,6 @@ class MapView : ViewGroup {
     fun removeFly(fly: Fly) {
         removeView(fly.view)
     }
-
 
     interface OnViewLoadFinishListener {
         fun onFinish(w: Int, h: Int)

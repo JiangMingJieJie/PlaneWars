@@ -215,7 +215,7 @@ object FlyFactory {
     }
 
     /**
-     * 获取飞机或子弹的View
+     * 获取爆炸效果的View
      */
     private fun getBoomView(context: Context, flyType: FlyType): View? {
         return when (flyType) {
