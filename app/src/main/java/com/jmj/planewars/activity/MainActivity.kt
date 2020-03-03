@@ -3,15 +3,14 @@ package com.jmj.planewars.activity
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.DialogInterface
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-import android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnRepeat
+import androidx.core.animation.doOnStart
 import com.jmj.planewars.R
 import com.jmj.planewars.fly.FlyController
 import com.jmj.planewars.fly.cons.FlyType
@@ -30,7 +29,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        fullScreen()
         flyController = FlyController(this, mapView)
 
         flyController.onGameOverListener = object : FlyController.OnGameProgressListener {
@@ -80,6 +78,9 @@ class MainActivity : AppCompatActivity() {
                 view.alpha = it.animatedValue as Float
             }
             duration = 500
+            doOnStart {  }
+            doOnRepeat {  }
+            doOnCancel {  }
             doOnEnd {
 
                 killAnim2Zero = ValueAnimator.ofFloat(view.alpha, 0F).apply {
@@ -102,13 +103,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
 
-    }
-
-    private fun fullScreen() {
-        window.decorView.systemUiVisibility =
-            SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or SYSTEM_UI_FLAG_LAYOUT_STABLE
-        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        window.statusBarColor = Color.TRANSPARENT
     }
 
 }

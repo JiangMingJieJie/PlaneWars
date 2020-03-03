@@ -18,7 +18,7 @@ object FlyFactory {
      */
     private var gcdPlaneLength = 40  //飞机大小
     private var gcdBulletLength = 20 //子弹大小
-    private var gcdPlaneHP = 200000  //飞机生命值
+    private var gcdPlaneHP = 10000  //飞机生命值
     private var gcdPlanePower = 100  //飞机撞击威力
     private var gcdBulletHP = 0      //子弹生命值
     private var gcdBulletPower = 100  //子弹威力
@@ -28,7 +28,7 @@ object FlyFactory {
      */
     private var gmdPlaneLength = 30    //飞机大小
     private var gmdBulletLength = 20   //子弹大小
-    private var gmdPlaneHp = 100       //飞机生命值
+    private var gmdPlaneHp = 100     //飞机生命值
     private var gmdPlanePower = 100    //飞机撞击威力
     private var gmdBulletHP = 0        //子弹生命值
     private var gmdBulletPower = 100   //子弹威力

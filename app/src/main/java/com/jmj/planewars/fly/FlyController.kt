@@ -78,7 +78,6 @@ class FlyController(private var activity: Activity, private var mapView: MapView
     fun reStart() {
         isGameOver = false
         addGcdPlane()
-        startBossTimer()
     }
 
 
@@ -87,7 +86,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
      */
     private fun startGcdPlaneShotThread() {
         Thread {
-            while (!isGameOver) {
+            while (!isGameOver && !isQuitGame) {
                 activity.runOnUiThread {
                     if (gcdPlanes.size != 0) {
                         shot(gcdPlanes[0] as Plane)
@@ -117,6 +116,9 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         }.start()
     }
 
+    /**
+     * 定时刷boss
+     */
     private fun startBossTimer() {
         Timer().schedule(object : TimerTask() {
             override fun run() {
@@ -124,7 +126,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                     createPlane(FlyType.PLANE_BOSS)
                 }
             }
-        }, (random.nextInt(3)+1) * 2000.toLong())
+        }, (random.nextInt(3) + 1) * 2000.toLong())
     }
 
 
@@ -539,7 +541,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
 
     interface OnGameProgressListener {
         fun onGameOver() {}
-        fun onKill(flyType: FlyType){}
+        fun onKill(flyType: FlyType) {}
         fun onStart() {}
         fun onPause() {}
     }
