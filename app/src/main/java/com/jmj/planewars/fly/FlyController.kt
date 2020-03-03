@@ -15,6 +15,7 @@ import com.jmj.planewars.fly.flyobject.Plane
 import com.jmj.planewars.fly.view.FlyBoomView
 import com.jmj.planewars.fly.view.MapView
 import com.jmj.planewars.fly.view.PlaneView
+import com.jmj.planewars.tools.myLog
 import java.lang.Math.abs
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
@@ -123,7 +124,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                     createPlane(FlyType.PLANE_BOSS)
                 }
             }
-        }, random.nextInt(10000) + 10000.toLong())
+        }, (random.nextInt(3)+1) * 2000.toLong())
     }
 
 
@@ -189,12 +190,10 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         }
     }
 
-
     /**
-     * 发射子弹
+     * 创建子弹
      */
-    private fun shot(plane: Plane) {
-
+    private fun createBullet(plane: Plane) {
         val bullet = FlyFactory.getBullet(activity, plane.flyType)!!
 
         bullet.x = (plane.cx - bullet.w / 2)
@@ -206,11 +205,23 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         moveFlyY(bullet)
     }
 
+    /**
+     * 发射子弹
+     */
+    private fun shot(plane: Plane) {
+        createBullet(plane)
+    }
+
 
     /**
      * y轴移动Fly
      */
     private fun moveFlyY(fly: Fly) {
+        //如果fly已经死亡
+        if (fly.isBoom) {
+            return
+        }
+
         var start = fly.cy
 
         var end = when (fly.flyType) {
@@ -238,7 +249,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         ValueAnimator.ofFloat(start, end.toFloat())
             .apply {
                 addUpdateListener {
-                    //如果飞出屏幕 或者碰撞了之后导致销毁 则停止动画
+                    //如果fly已经死亡
                     if (fly.isBoom) {
                         cancel()
                         return@addUpdateListener
@@ -263,6 +274,11 @@ class FlyController(private var activity: Activity, private var mapView: MapView
      * X轴移动Fly
      */
     private fun moveFlyX(fly: Fly) {
+        //如果fly已经死亡
+        if (fly.isBoom) {
+            return
+        }
+
         var start = fly.x
         var end = if (fly.x < w - fly.w) {
             w.toFloat() - fly.w
@@ -271,6 +287,11 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         }
         ValueAnimator.ofFloat(start, end).apply {
             addUpdateListener {
+                //如果fly已经死亡
+                if (fly.isBoom) {
+                    cancel()
+                    return@addUpdateListener
+                }
                 fly.x = it.animatedValue as Float
                 //超出屏幕检测
                 if (checkFlyPosition(fly)) {
@@ -370,6 +391,9 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         if (fly.HP <= 0) {
             createBoom(fly)
             removeFly(fly)
+            if (fly.flyType == FlyType.PLANE_GMD || fly.flyType == FlyType.PLANE_BOSS) {
+                onGameOverListener?.onKill(fly.flyType)
+            }
             if (fly.flyType == FlyType.PLANE_GCD) {
                 isGameOver = true
                 onGameOverListener?.onGameOver()
@@ -497,6 +521,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
                 gcdPlanes.remove(fly)
             }
             FlyType.BULLET_BOSS -> {
+                myLog("removeboss")
                 gmdBullets.remove(fly)
             }
             FlyType.PLANE_BOSS -> {
@@ -514,6 +539,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
 
     interface OnGameProgressListener {
         fun onGameOver() {}
+        fun onKill(flyType: FlyType){}
         fun onStart() {}
         fun onPause() {}
     }
