@@ -285,6 +285,7 @@ class FlyController(private var activity: Activity, private var mapView: MapView
         }
 
         var start = fly.x
+        //左移动或者右移动
         var end = if (fly.x < w - fly.w) {
             w.toFloat() - fly.w
         } else {
@@ -305,7 +306,9 @@ class FlyController(private var activity: Activity, private var mapView: MapView
             }
             duration = (abs(start - end)).toLong() * fly.speed
             interpolator = LinearInterpolator()
+
             doOnEnd {
+                //递归调用，实现左右不停移动
                 moveFlyX(fly)
             }
             start()

@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.animation.LinearInterpolator
-import androidx.core.animation.doOnRepeat
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -51,14 +50,11 @@ class ScrollStarsView : BaseView {
      * 添加圆形
      */
     private fun addRect() {
-        var rdX = (random.nextInt(4) * diameter).toFloat()
-        var rdY = -diameter.toFloat()
-        var rdR = diameter / 2F * (random.nextFloat() + 0.1F)
         circleStars.add(
             CircleStar(
-                rdX,
-                rdY,
-                rdR
+                (random.nextInt(4) * diameter).toFloat(),
+                -diameter.toFloat(),
+                diameter / 2F * (random.nextFloat() + 0.1F)
             )
         )
     }
@@ -121,13 +117,12 @@ class ScrollStarsView : BaseView {
         }
     }
 
-
-    data class CircleStar(var x: Float, var y: Float, var r: Float)
-
-
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         moveRectAnim?.cancel()
         moveRectAnim = null
     }
+
+    data class CircleStar(var x: Float, var y: Float, var r: Float)
+
 }

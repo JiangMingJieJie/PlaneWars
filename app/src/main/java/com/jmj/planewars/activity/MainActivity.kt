@@ -7,10 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnRepeat
-import androidx.core.animation.doOnStart
 import com.jmj.planewars.R
 import com.jmj.planewars.fly.FlyController
 import com.jmj.planewars.fly.cons.FlyType
@@ -43,12 +40,6 @@ class MainActivity : AppCompatActivity() {
                     }.show()
             }
 
-            override fun onStart() {
-                super.onStart()
-                killCount = 0
-                killBossCount = 0
-            }
-
             @SuppressLint("SetTextI18n")
             override fun onKill(flyType: FlyType) {
                 super.onKill(flyType)
@@ -78,9 +69,6 @@ class MainActivity : AppCompatActivity() {
                 view.alpha = it.animatedValue as Float
             }
             duration = 500
-            doOnStart {  }
-            doOnRepeat {  }
-            doOnCancel {  }
             doOnEnd {
 
                 killAnim2Zero = ValueAnimator.ofFloat(view.alpha, 0F).apply {
